@@ -114,7 +114,7 @@ src/
 
 1. **Responsive Grid**  
    Dynamic columns based on screen size:
-   - Mobile (1 column)
+   - Mobile (2 column)
    - Tablet (2 columns)
    - Desktop (4 columns)
 
