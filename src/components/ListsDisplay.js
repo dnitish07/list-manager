@@ -117,15 +117,16 @@ const ButtonContainer = styled.div`
 `;
 
 const ArrowButton = styled.button`
-  background: none;
-  border: none;
+  background-color: white;
+  border-radius: 20px;
   cursor: pointer;
   padding: 8px;
-  color: #0b69ff;
+  color: black;
   font-size: 20px;
   
   &:hover {
-    color: #1e40af;
+    color: white;
+    background-color: skyblue;
   }
 `;
 
@@ -138,7 +139,15 @@ const ItemContainer = styled.div`
   &:last-child {
     border-bottom: none;
   }
+    padding: 12px;
+  border-bottom: 1px solid #eee;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
 `;
+
 
 const ItemContent = styled.div`
   flex: 1;
@@ -155,7 +164,7 @@ const ItemDescription = styled.div`
   color: #666;
 `;
 
-const ListCreationView = ({ lists, selectedLists, onCancel, onUpdate }) => {
+const ListsDisplay = ({ lists, selectedLists, onCancel, onUpdate }) => {
   const selectedListsData = selectedLists.map(num => 
     lists.find(list => list.list_number === num)
   ).filter(Boolean);
@@ -234,7 +243,7 @@ const ListCreationView = ({ lists, selectedLists, onCancel, onUpdate }) => {
         
         <List>
           <ListHeader>
-            New List
+            List
             <ItemCount>{workingLists.newList.items.length} items</ItemCount>
           </ListHeader>
           {workingLists.newList.items.map(item => (
@@ -280,4 +289,4 @@ const ListCreationView = ({ lists, selectedLists, onCancel, onUpdate }) => {
   );
 };
 
-export default ListCreationView;
+export default ListsDisplay;

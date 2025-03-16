@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import ListCreationView from './ListCreationView';
+import ListsDisplay from './ListsDisplay';
+import errorImage from './list-creation-failure-lg-output.png';
 
 const API_URL = 'https://apis.ccbp.in/list-creation/lists';
 
 const Container = styled.div`
-  padding: 20px;
+position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  height: 100vh;
+  padding: 20px;
   background-color: #ffffff;
-  min-height: 100vh;
+  overflow: hidden; 
 `;
 
 const TopSection = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-bottom: 32px;
   padding: 16px 0;
   border-bottom: 1px solid #eeeeee;
@@ -26,10 +31,10 @@ const ListsGrid = styled.div`
   grid-template-columns: 1fr;
   gap: 24px;
   margin: 20px 0;
-  max-height: calc(100vh - 150px); // Account for header and margins
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
   padding-right: 10px;
-  
+
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -42,7 +47,6 @@ const ListsGrid = styled.div`
     grid-template-columns: repeat(4, 1fr);
   }
 
-  /* Scrollbar styling */
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -81,6 +85,8 @@ const Button = styled.button`
 const ErrorMessage = styled.p`
   color: red;
   text-align: center;
+  margin-top: 10px;
+  font-size: 25px;
 `;
 
 const LoadingContainer = styled.div`
@@ -94,9 +100,11 @@ const LoadingContainer = styled.div`
 const ListItemStyled = styled.div`
   padding: 12px;
   border-bottom: 1px solid #eee;
-  &:last-child {
-    border-bottom: none;
-  }
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
 `;
 
 const ItemName = styled.div`
@@ -109,12 +117,46 @@ const ItemDescription = styled.div`
   color: #666;
 `;
 
-const ListsContainer = () => {
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end; /* Moves content slightly lower */
+  height: 100vh;
+  text-align: center;
+  background-image: url(${(props) => props.bgImage});
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  padding-bottom: 600px; /* Adjust this value to fine-tune */
+`;
+
+const RetryButton = styled.button`
+  padding: 12px 24px;
+  background: #0b69ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 25px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: #0052cc;
+  }
+
+  &:disabled {
+    background: #9aa5b1;
+    cursor: not-allowed;
+  }
+`;
+const ListDirectory = () => {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLists, setSelectedLists] = useState([]);
   const [showCreationView, setShowCreationView] = useState(false);
+  const [selectionError, setSelectionError] = useState(""); // Error for list selection
 
   useEffect(() => {
     fetchLists();
@@ -135,7 +177,6 @@ const ListsContainer = () => {
       console.log('Raw API Data:', data);
 
       if (data && Array.isArray(data.lists)) {
-        // Group items into two lists
         const list1Items = data.lists.filter((_, index) => index % 2 === 0);
         const list2Items = data.lists.filter((_, index) => index % 2 === 1);
 
@@ -185,18 +226,18 @@ const ListsContainer = () => {
 
   const handleCreateNewList = () => {
     if (selectedLists.length !== 2) {
-      setError('You should select exactly 2 lists to create a new list');
+      setSelectionError("*You should select exactly 2 lists to create a new list");
       return;
     }
+    setSelectionError(""); // Clear error when valid
     setShowCreationView(true);
-    setError(null);
   };
 
   if (loading) {
     return (
       <Container>
         <LoadingContainer>
-          <div className="loader">Loading...</div>
+          <div className="loader"></div>
         </LoadingContainer>
       </Container>
     );
@@ -204,18 +245,16 @@ const ListsContainer = () => {
 
   if (error && !showCreationView) {
     return (
-      <Container>
-        <div>
-          <p>{error}</p>
-          <Button onClick={fetchLists}>Try Again</Button>
-        </div>
-      </Container>
+      <ErrorContainer bgImage={errorImage}>
+        <ErrorMessage>Something went wrong. Please try again</ErrorMessage>
+        <RetryButton onClick={fetchLists}>Try Again</RetryButton>
+      </ErrorContainer>
     );
   }
 
   if (showCreationView) {
     return (
-      <ListCreationView 
+      <ListsDisplay
         lists={lists}
         selectedLists={selectedLists}
         onCancel={() => setShowCreationView(false)}
@@ -230,14 +269,13 @@ const ListsContainer = () => {
 
   return (
     <Container>
-      <TopSection>
-        <Button 
-          onClick={handleCreateNewList}
-          disabled={selectedLists.length !== 2}
-        >
+<h1 style={{ display: "flex", justifyContent: "center" }}>List Creation</h1>
+<TopSection>
+        <Button onClick={handleCreateNewList}>
           Create a new list
         </Button>
       </TopSection>
+      {selectionError && <ErrorMessage>{selectionError}</ErrorMessage>}
       <ListsGrid>
         {lists.map((list, index) => (
           <ListItem 
@@ -248,7 +286,6 @@ const ListsContainer = () => {
           />
         ))}
       </ListsGrid>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
     </Container>
   );
 };
@@ -261,25 +298,6 @@ const List = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   max-height: 500px;
   overflow-y: auto;
-
-  /* Scrollbar styling */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
 `;
 
 const ListHeader = styled.div`
@@ -312,22 +330,17 @@ const Checkbox = styled.input`
 `;
 
 const ListItem = ({ list, isSelected, onSelect }) => {
-  const items = list?.items || [];
-  
   return (
     <List $isSelected={isSelected}>
       <ListHeader>
         <ListTitle>
+        <Checkbox type="checkbox" checked={isSelected} onChange={() => onSelect(list.list_number)} />
           <h3>List {list.list_number}</h3>
-          <ItemCount>{items.length} items</ItemCount>
+          
         </ListTitle>
-        <Checkbox
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onSelect(list.list_number)}
-        />
+        
       </ListHeader>
-      {items.map((item) => (
+      {list.items.map((item) => (
         <ListItemStyled key={item.id}>
           <ItemName>{item.name}</ItemName>
           <ItemDescription>{item.description}</ItemDescription>
@@ -337,4 +350,4 @@ const ListItem = ({ list, isSelected, onSelect }) => {
   );
 };
 
-export default ListsContainer;
+export default ListDirectory;
