@@ -133,7 +133,7 @@ src/
 ## Deployment
 
 Deployed using GitHub Pages:  
-[Live Demo](https://your-username.github.io/list-creation-app)
+[Live Demo](https://dnitish07.github.io/list-manager/)
 
 ## Assignment Requirements Met
 
