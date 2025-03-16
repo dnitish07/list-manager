@@ -135,14 +135,6 @@ src/
 Deployed using GitHub Pages:  
 [Live Demo](https://dnitish07.github.io/list-manager/)
 
-## Assignment Requirements Met
-
-- ✔️ API integration with loading/error states
-- ✔️ Responsive UI implementation
-- ✔️ List selection validation
-- ✔️ Item transfer functionality
-- ✔️ State persistence with Redux
-- ✔️ Modern React patterns (Hooks, Functional Components)
 
 ## Acknowledgements
 
