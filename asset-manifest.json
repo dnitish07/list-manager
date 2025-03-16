@@ -1,16 +1,14 @@
 {
   "files": {
     "main.css": "/list-manager/static/css/main.a10f8a8f.css",
-    "main.js": "/list-manager/static/js/main.1943ba47.js",
-    "static/js/453.fad23cd1.chunk.js": "/list-manager/static/js/453.fad23cd1.chunk.js",
+    "main.js": "/list-manager/static/js/main.394120af.js",
     "static/media/list-creation-failure-lg-output.png": "/list-manager/static/media/list-creation-failure-lg-output.f987dfe73ef922b6ea2f.png",
     "index.html": "/list-manager/index.html",
     "main.a10f8a8f.css.map": "/list-manager/static/css/main.a10f8a8f.css.map",
-    "main.1943ba47.js.map": "/list-manager/static/js/main.1943ba47.js.map",
-    "453.fad23cd1.chunk.js.map": "/list-manager/static/js/453.fad23cd1.chunk.js.map"
+    "main.394120af.js.map": "/list-manager/static/js/main.394120af.js.map"
   },
   "entrypoints": [
     "static/css/main.a10f8a8f.css",
-    "static/js/main.1943ba47.js"
+    "static/js/main.394120af.js"
   ]
 }
