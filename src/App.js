@@ -1,6 +1,5 @@
-import ListsContainer from './components/ListDirectory';
-import './App.css';
 import ListDirectory from './components/ListDirectory';
+import './App.css';
 
 function App() {
   return (

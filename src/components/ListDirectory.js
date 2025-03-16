@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import ListsDisplay from './ListsDisplay';
 import errorImage from './list-creation-failure-lg-output.png';
+import { fetchLists, setSelectedLists, resetError } from '../redux/listsSlice';
 
-const API_URL = 'https://apis.ccbp.in/list-creation/lists';
+//const API_URL = 'https://apis.ccbp.in/list-creation/lists';
 
 const Container = styled.div`
 position: fixed;
@@ -150,90 +152,44 @@ const RetryButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
 const ListDirectory = () => {
-  const [lists, setLists] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedLists, setSelectedLists] = useState([]);
+  const dispatch = useDispatch();
+  const { items: lists, status, error, selected } = useSelector((state) => state.lists);
   const [showCreationView, setShowCreationView] = useState(false);
-  const [selectionError, setSelectionError] = useState(""); // Error for list selection
+  const [selectionError, setSelectionError] = useState("");
 
   useEffect(() => {
-    fetchLists();
-  }, []);
-
-  const fetchLists = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(API_URL);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch lists. Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Raw API Data:', data);
-
-      if (data && Array.isArray(data.lists)) {
-        const list1Items = data.lists.filter((_, index) => index % 2 === 0);
-        const list2Items = data.lists.filter((_, index) => index % 2 === 1);
-
-        const formattedLists = [
-          {
-            list_number: 1,
-            items: list1Items.map(item => ({
-              id: item.id,
-              name: item.name,
-              description: item.description
-            }))
-          },
-          {
-            list_number: 2,
-            items: list2Items.map(item => ({
-              id: item.id,
-              name: item.name,
-              description: item.description
-            }))
-          }
-        ];
-
-        console.log('Formatted Lists:', formattedLists);
-        setLists(formattedLists);
-      } else {
-        throw new Error('Invalid data format received');
-      }
-    } catch (err) {
-      console.error('API Error:', err);
-      setError('Failed to fetch lists. Please try again.');
-    } finally {
-      setLoading(false);
+    if (status === 'idle') {
+      dispatch(fetchLists());
     }
-  };
+  }, [status, dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => dispatch(resetError()), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, dispatch]);
 
   const handleListSelect = (listNumber) => {
-    setSelectedLists(prev => {
-      if (prev.includes(listNumber)) {
-        return prev.filter(num => num !== listNumber);
-      }
-      if (prev.length < 2) {
-        return [...prev, listNumber];
-      }
-      return prev;
-    });
+    const newSelection = selected.includes(listNumber)
+      ? selected.filter(num => num !== listNumber)
+      : [...selected, listNumber].slice(0, 2);
+    
+    dispatch(setSelectedLists(newSelection));
+    setSelectionError("");
   };
 
   const handleCreateNewList = () => {
-    if (selectedLists.length !== 2) {
+    if (selected.length !== 2) {
       setSelectionError("*You should select exactly 2 lists to create a new list");
       return;
     }
-    setSelectionError(""); // Clear error when valid
     setShowCreationView(true);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <Container>
         <LoadingContainer>
@@ -247,7 +203,7 @@ const ListDirectory = () => {
     return (
       <ErrorContainer bgImage={errorImage}>
         <ErrorMessage>Something went wrong. Please try again</ErrorMessage>
-        <RetryButton onClick={fetchLists}>Try Again</RetryButton>
+        <RetryButton onClick={() => dispatch(fetchLists())}>Try Again</RetryButton>
       </ErrorContainer>
     );
   }
@@ -255,33 +211,27 @@ const ListDirectory = () => {
   if (showCreationView) {
     return (
       <ListsDisplay
-        lists={lists}
-        selectedLists={selectedLists}
+        selectedLists={selected}
         onCancel={() => setShowCreationView(false)}
-        onUpdate={(updatedLists) => {
-          setLists(updatedLists);
-          setShowCreationView(false);
-          setSelectedLists([]);
-        }}
       />
     );
   }
 
   return (
     <Container>
-<h1 style={{ display: "flex", justifyContent: "center" }}>List Creation</h1>
-<TopSection>
+      <h1 style={{ display: "flex", justifyContent: "center" }}>List Creation</h1>
+      <TopSection>
         <Button onClick={handleCreateNewList}>
           Create a new list
         </Button>
       </TopSection>
       {selectionError && <ErrorMessage>{selectionError}</ErrorMessage>}
       <ListsGrid>
-        {lists.map((list, index) => (
+        {lists.map((list) => (
           <ListItem 
-            key={`list-${list.list_number}-${index}`}
+            key={`list-${list.list_number}`}
             list={list}
-            isSelected={selectedLists.includes(list.list_number)}
+            isSelected={selected.includes(list.list_number)}
             onSelect={handleListSelect}
           />
         ))}

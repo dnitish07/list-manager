@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
+import { updateLists, setSelectedLists } from '../redux/listsSlice';
 
 const Container = styled.div`
   padding: 20px;
@@ -164,50 +166,54 @@ const ItemDescription = styled.div`
   color: #666;
 `;
 
-const ListsDisplay = ({ lists, selectedLists, onCancel, onUpdate }) => {
-  const selectedListsData = selectedLists.map(num => 
+const ListsDisplay = ({ onCancel }) => {
+  const dispatch = useDispatch();
+  const { items: lists, selected } = useSelector((state) => state.lists);
+  const selectedListsData = selected.map(num => 
     lists.find(list => list.list_number === num)
   ).filter(Boolean);
 
   const [firstList, secondList] = selectedListsData;
   
   const [workingLists, setWorkingLists] = useState({
-    list1: { ...firstList, items: [...firstList.items] },
-    list2: { ...secondList, items: [...secondList.items] },
+    list1: { 
+      ...(firstList || { items: [] }), 
+      items: [...(firstList?.items || [])] 
+    },
+    list2: { 
+      ...(secondList || { items: [] }), 
+      items: [...(secondList?.items || [])] 
+    },
     newList: {
-      list_number: Math.max(...lists.map(l => l.list_number)) + 1,
+      list_number: lists.length > 0 
+        ? Math.max(...lists.map(l => l.list_number)) + 1 
+        : 3,
       items: []
     }
   });
 
+  
   const moveItem = (from, to, itemId) => {
     setWorkingLists(prev => {
-      const newState = {
-        list1: { ...prev.list1, items: [...prev.list1.items] },
-        list2: { ...prev.list2, items: [...prev.list2.items] },
-        newList: { ...prev.newList, items: [...prev.newList.items] }
-      };
-
+      const newState = JSON.parse(JSON.stringify(prev));
       const sourceList = newState[from];
       const targetList = newState[to];
       
       const itemIndex = sourceList.items.findIndex(item => item.id === itemId);
-      
-      if (itemIndex !== -1) {
-        const [movedItem] = sourceList.items.splice(itemIndex, 1);
-        targetList.items.push({ ...movedItem });
-      }
+      if (itemIndex === -1) return prev;
 
+      const [movedItem] = sourceList.items.splice(itemIndex, 1);
+      targetList.items.push(movedItem);
       return newState;
     });
   };
 
   const handleUpdate = () => {
     const updatedLists = lists.map(list => {
-      if (list.list_number === firstList.list_number) {
+      if (list.list_number === workingLists.list1.list_number) {
         return workingLists.list1;
       }
-      if (list.list_number === secondList.list_number) {
+      if (list.list_number === workingLists.list2.list_number) {
         return workingLists.list2;
       }
       return list;
@@ -217,7 +223,9 @@ const ListsDisplay = ({ lists, selectedLists, onCancel, onUpdate }) => {
       updatedLists.push(workingLists.newList);
     }
 
-    onUpdate(updatedLists);
+    dispatch(updateLists(updatedLists));
+    dispatch(setSelectedLists([]));
+    onCancel();
   };
 
   return (
